@@ -35,10 +35,15 @@ set.seed(589)
 ```{r data}
 H_hum <- read_csv("data_raw/human/AM-MDM/h_GSEA.result.csv") 
 
-H_mur <- read_csv("data_raw/murine/GSEA_AM_H37Rv_RNAseq.csv")
+H_mur <- read_csv("data_raw/murine/GSEA_AM_H37Rv_RNAseq.csv") %>% 
+  bind_rows(
+    read_csv("data_raw/murine/GSEA_BMDM_H37Rv_RNAseq.csv")
+  )
 ```
 
 # GSEA term overlap
+
+Format and combine data
 
 ```{r echo=FALSE}
 H_hum_format <- H_hum %>% 
@@ -54,9 +59,11 @@ H_mur_format <- H_mur %>%
   mutate(group = recode(Sample,
                         "CoTB_Mtb"="Murine AM coTB",
                         "scBCG_Mtb"="Murine AM scBCG",
-                        "Unvax_Mtb"="Murine AM")) %>% 
+                        "Unvax_Mtb"="Murine AM",
+                        "GSO30_BMDM_H37Rv" = "Murine BMDM")) %>% 
   select(group, Pathway, `FDR q-val`, NES) %>%
-  rename(FDR="FDR q-val", pathway=Pathway)
+  rename(FDR="FDR q-val", pathway=Pathway) %>% 
+  mutate(pathway = gsub("HALLMARK_","",pathway))
 
 # check pathway names
 table(unique(H_hum_format$pathway) %in% H_mur_format$pathway)
@@ -67,7 +74,9 @@ H_all <- bind_rows(H_hum_format, H_mur_format)
 length(unique(H_all$pathway))
 ```
 
-```{r echo=FALSe}
+## AM
+
+```{r echo=FALSE}
 #list all same direction 
 H_AM_wide <- H_all %>% 
   filter(grepl("AM", group)) %>% 
@@ -95,8 +104,50 @@ plot_gsea(., fdr.cutoff = 1.1) +
 ```
 
 ```{r}
-plotH1/plotH2 +
-  plot_layout(widths = c(nrow(shared_AM), 50-nrow(shared_AM)))
+plotH <- plotH1/plotH2 +
+  plot_layout(heights = c(nrow(shared_AM), 50-nrow(shared_AM)))
+plotH
+
+ggsave(plotH, filename = "figs/Hallmark_GSEA_AM.png", 
+       height=10, width=15)
+```
+
+## MDM
+
+```{r echo=FALSE}
+#list all same direction 
+H_MDM_wide <- H_all %>% 
+  filter(grepl("MDM", group)) %>% 
+  select(-FDR) %>% 
+  pivot_wider(names_from = group, values_from = NES)
+
+shared_MDM <- H_MDM_wide[(!rowSums(H_MDM_wide[c(-1,-3)] > 0)) | (!rowSums(H_MDM_wide[-1] < 0)), ]
+
+plotH3 <- H_all %>% 
+  filter(grepl("MDM", group) & pathway %in% shared_MDM$pathway) %>% 
+  mutate(group = paste(group,"Down with Mtb <--    --> Up with Mtb", 
+                       sep="\n")) %>% 
+plot_gsea(., fdr.cutoff = 1.1) +
+  ggtitle("Shared human and murine MDM responses to Mtb infection")
+```
+
+```{r echo=FALSE}
+#different directions
+plotH4 <- H_all %>% 
+  filter(grepl("MDM", group) & !pathway %in% shared_MDM$pathway) %>% 
+  mutate(group = paste(group,"Down with Mtb <--    --> Up with Mtb", 
+                       sep="\n")) %>% 
+plot_gsea(., fdr.cutoff = 1.1) +
+  ggtitle("Unique human and murine MDM responses to Mtb infection")
+```
+
+```{r}
+plotH_mdm <- plotH3/plotH4 +
+  plot_layout(heights = c(nrow(shared_MDM), 50-nrow(shared_MDM)))
+plotH_mdm
+
+ggsave(plotH_mdm, filename = "figs/Hallmark_GSEA_MDM.png", 
+       height=10, width=10)
 ```
 
 # R session
