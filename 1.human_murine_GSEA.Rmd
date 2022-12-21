@@ -108,7 +108,7 @@ plotH <- plotH1/plotH2 +
   plot_layout(heights = c(nrow(shared_AM), 50-nrow(shared_AM)))
 plotH
 
-ggsave(plotH, filename = "figs/Hallmark_GSEA_AM.png", 
+ggsave(plotH, filename = "figs/gsea/Hallmark_GSEA_AM.png", 
        height=10, width=15)
 ```
 
@@ -146,7 +146,7 @@ plotH_mdm <- plotH3/plotH4 +
   plot_layout(heights = c(nrow(shared_MDM), 50-nrow(shared_MDM)))
 plotH_mdm
 
-ggsave(plotH_mdm, filename = "figs/Hallmark_GSEA_MDM.png", 
+ggsave(plotH_mdm, filename = "figs/gsea/Hallmark_GSEA_MDM.png", 
        height=10, width=10)
 ```
 
