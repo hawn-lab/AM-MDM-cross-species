@@ -79,7 +79,11 @@ dat <- bind_rows(hum_FC, mur_FC) %>%
 ```
 
 Check and recode when gene symbols differ. 
-
+**Check all IFN in db
+**Note IFN with "messy" ortho anno
+**IFNb gene set
+**human vs BCG all genes in diff directions
+**fine scrnaseq tb data sets
 ```{r}
 key_raw <- read_tsv("data_raw/Jax_HOM_AllOrganism.rpt") %>% 
   clean_names() %>% 
@@ -282,7 +286,7 @@ plot_fxn <- function(dat, cell, genes, name=""){
         
         scale_fill_brewer(palette = "RdYlBu", na.value="grey70") +
         coord_flip() +
-        labs(x="", y="Lo2 fold change") +
+        labs(x="", y="Log2 fold change") +
         theme_bw() +
         facet_grid(orig_symbol~group, drop = FALSE, scales = "free_y", space = "free") +
         ggtitle(paste("Ortholog human or murine", cell, "responses to Mtb infection",
